@@ -58,3 +58,14 @@ It takes a unique approach by providing a groovy based DSL that is reactive stre
 wget -qO- https://get.nextflow.io | bash
 nextflow run --config examples/nextflow/nextflow.config examples/nextflow/01_search_and_download.nf
 ```
+
+If you are using [Nextflow Tower](tower.nf) to monitor the pipeline, you can add a `scope` to your
+config like the following:
+
+```
+docker.enabled = true
+tower {
+    enabled = true
+    accessToken = '<YOUR TOKEN>'
+}
+```

@@ -9,3 +9,4 @@ cromwell*/
 .nextflow*
 *.fa
 *.fasta
+nfx*
