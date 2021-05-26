@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+
 params.lineage="B.1.1.7"
 params.search_api = "https://search.international.covidcloud.ca/"
 query = """SELECT \
@@ -9,7 +10,7 @@ WHERE lineage = '${params.lineage}' AND files.type = 'Assembly' \
 LIMIT 10"""
 
 process submitQueryAndDownload {
-    container 'dnastack/clippe:latest'
+    container 'gcr.io/dnastack-pub-container-store/clippe:latest'
     containerOptions = '--user root'
 
     output:

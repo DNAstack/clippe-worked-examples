@@ -15,7 +15,7 @@ task submit_query_and_download {
         Array[File] downloads = glob("out/*")
     }
     runtime {
-        docker: "dnastack/clippe:latest"
+        docker: "gcr.io/dnastack-pub-container-store/clippe:latest"
     }
 }
 

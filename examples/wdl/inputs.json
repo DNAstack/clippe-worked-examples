@@ -1,4 +1,0 @@
-{
-    "do_stuff.search_criteria": ["lower(location) LIKE lower('canada%') OR lower(location) = 'quebec'"],
-    "do_stuff.limit": 2000
-}

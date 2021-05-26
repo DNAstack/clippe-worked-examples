@@ -7,7 +7,7 @@ requirements:
   InlineJavascriptRequirement: {}
 hints:
   DockerRequirement:
-    dockerPull: dnastack/clippe:latest
+    dockerPull: gcr.io/dnastack-pub-container-store/clippe:latest
 inputs:
   search_api:
     type: string?
