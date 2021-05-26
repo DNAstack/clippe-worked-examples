@@ -11,9 +11,6 @@ different execution engines.
 ```
 git clone git@github.com:DNAstack/clippe-worked-examples.git
 cd clippe-worked-examples
-
-
-docker build -t dnastack/clippe:latest docker/dnastack-clippe
 ```
 
 ### Wdl
@@ -49,7 +46,7 @@ to define tasks or
 sudo apt-get update
 sudo apt-get install cwltool
 
-./examples/wdl/01_search_and_download.cwl
+./examples/cwl/01_search_and_download.cwl
 ```
 
 ### Nextflow
@@ -59,5 +56,5 @@ It takes a unique approach by providing a groovy based DSL that is reactive stre
 
 ```
 wget -qO- https://get.nextflow.io | bash
-nextflow --config examples/nextflow/nextflow.config examples/nextflow/01_search_and_download.nf
+nextflow run --config examples/nextflow/nextflow.config examples/nextflow/01_search_and_download.nf
 ```
