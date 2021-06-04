@@ -7,11 +7,11 @@ requirements:
   InlineJavascriptRequirement: {}
 hints:
   DockerRequirement:
-    dockerPull: gcr.io/dnastack-pub-container-store/clippe:latest
+    dockerPull: gcr.io/dnastack-pub-container-store/dnastack-client-library:latest
 inputs:
   search_api:
     type: string?
-    default: "https://search.international.covidcloud.ca/"
+    default: "https://collection-service.publisher.dnastack.com/collection/library/search/"
   query:
     type: string?
     default: "SELECT drs_url FROM covid.cloud.sequences seq JOIN covid.cloud.files files on files.sequence_accession = seq.accession WHERE lineage = 'B.1.1.7' AND files.type = 'Assembly' LIMIT 10"
@@ -20,11 +20,9 @@ arguments:
     valueFrom: >
       mkdir out
 
-      mkdir ~/.clippe
+      dnastack config set data-connect-url $(inputs.search_api)
 
-      clippe config search-url $(inputs.search_api)
-
-      clippe search query -r "$(inputs.query)" |  clippe files download -o out
+      dnastack dataconnect query -r "$(inputs.query)" |  dnastack files download -o out
 outputs:
   output:
     type:

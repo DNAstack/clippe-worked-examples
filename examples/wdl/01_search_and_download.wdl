@@ -7,22 +7,23 @@ task submit_query_and_download {
     }
     command <<<
         mkdir out
-        clippe config search-url ~{search_api}
-        clippe search query -r "~{query}" |  clippe files download -o out
+        dnastack config set data-connect-url ~{search_api}
+        dnastack config list
+        dnastack dataconnect query -r "~{query}" |  dnastack files download -o out
     >>>
 
     output {
         Array[File] downloads = glob("out/*")
     }
     runtime {
-        docker: "gcr.io/dnastack-pub-container-store/clippe:latest"
+        docker: "gcr.io/dnastack-pub-container-store/dnastack-client-library:latest"
     }
 }
 
 workflow download_assemblies_for_lineage {
     input {
         String lineage = "B.1.1.7"
-        String search_api = "https://search.international.covidcloud.ca/"
+        String search_api = "https://collection-service.publisher.dnastack.com/collection/library/search/"
         Int limit = 10
     }
 

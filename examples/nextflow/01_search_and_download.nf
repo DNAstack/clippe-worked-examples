@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.lineage="B.1.1.7"
-params.search_api = "https://search.international.covidcloud.ca/"
+params.search_api = "https://collection-service.publisher.dnastack.com/collection/library/search/"
 query = """SELECT \
     drs_url \
 FROM covid.cloud.sequences seq \
@@ -10,7 +10,7 @@ WHERE lineage = '${params.lineage}' AND files.type = 'Assembly' \
 LIMIT 10"""
 
 process submitQueryAndDownload {
-    container 'gcr.io/dnastack-pub-container-store/clippe:latest'
+    container 'gcr.io/dnastack-pub-container-store/dnastack-client-library:latest'
     containerOptions = '--user root'
 
     output:
@@ -20,8 +20,8 @@ process submitQueryAndDownload {
     """
     #!/usr/bin/env bash
     mkdir out
-    clippe config search-url ${params.search_api}
-    clippe search query -r "${query}" |  clippe files download -o out
+    dnastack config set data-connect-url ${params.search_api}
+    dnastack dataconnect query -r "${query}" |  dnastack files download -o out
     """
 }
 

@@ -3,7 +3,7 @@ analysis/
 work/
 2021*/
 .idea/
-_LAST/
+_LAST
 *.jar
 cromwell*/
 .nextflow*
