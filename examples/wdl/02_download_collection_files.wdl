@@ -54,7 +54,7 @@ task concat_files {
 
 workflow download_and_concat {
     input {
-        String collection_name = "Test File for Workflow (Do Not Delete!)"
+        String collection_name = "Multi-cloud Sample Data"
         String data_connect_url = "https://collection-service.staging.dnastack.com/collection/library/data-connect/"
         String collection_url = "https://collection-service.staging.dnastack.com/collections"
         String drs_url = "https://collection-service.staging.dnastack.com/collection/library/drs/objects"
