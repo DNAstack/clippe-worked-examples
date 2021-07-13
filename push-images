@@ -14,3 +14,10 @@ pushd docker/dnastack-cli || exit
     docker push "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)"
     docker push gcr.io/dnastack-pub-container-store/dnastack-cli:latest
 popd || exit
+
+pushd docker/assembly_to_variants || exit
+    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" .
+    docker tag "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" gcr.io/dnastack-pub-container-store/assembly_to_variants:latest
+    docker push "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)"
+    docker push gcr.io/dnastack-pub-container-store/assembly_to_variants:latest
+popd || exit
