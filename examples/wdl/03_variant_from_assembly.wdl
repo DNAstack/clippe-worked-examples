@@ -2,7 +2,7 @@ version 1.0
 
 workflow variants_from_assembly {
 	input {
-        String collection_name = "Test File for Workflow (Do Not Delete!)"
+        String collection_name
         String data_connect_url = "https://collection-service.staging.dnastack.com/collection/library/data-connect/"
         String collection_url = "https://collection-service.staging.dnastack.com/collections"
         String drs_url = "https://collection-service.staging.dnastack.com/collection/library/drs/objects"
