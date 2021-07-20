@@ -3,19 +3,19 @@ version 1.0
 workflow variants_from_assembly {
 	input {
         String collection_name
-        String data_connect_url = "https://collection-service.staging.dnastack.com/collection/library/data-connect/"
-        String collection_url = "https://collection-service.staging.dnastack.com/collections"
-        String drs_url = "https://collection-service.staging.dnastack.com/collection/library/drs/objects"
+        String data_connect_url = "https://collection-service.publisher.dnastack.com/collection/library/data-connect/"
+        String collection_url = "https://collection-service.publisher.dnastack.com/collections"
+        String drs_url = "https://collection-service.publisher.dnastack.com/collection/library/drs/objects"
     }
 
     call download_fastas {
-        input: 
+        input:
             collection_name = collection_name,
             data_connect_url = data_connect_url,
             collection_url = collection_url,
             drs_url = drs_url
     }
-    
+
 
     scatter (fasta in download_fastas.fastas) {
         call call_variants {
@@ -67,7 +67,7 @@ task download_fastas {
 
 task call_variants {
 	input {
-		File assembly	
+		File assembly
     }
 
     String accession = sub(basename(assembly),"\\..*","")
