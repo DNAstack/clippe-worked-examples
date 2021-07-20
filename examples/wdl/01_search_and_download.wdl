@@ -27,13 +27,12 @@ workflow download_assemblies_for_lineage {
         Int limit = 10
     }
 
-    String query = "SELECT drs_url FROM covid.cloud.sequences seq " +
-                   "JOIN covid.cloud.files files on files.sequence_accession = seq.accession " +
-                   "WHERE lineage = '~{lineage}' AND files.type = 'Assembly' " +
-                   "LIMIT ~{limit}"
+    String query = "SELECT drs_url FROM covid.cloud.sequences seq JOIN covid.cloud.files files on files.sequence_accession = seq.accession WHERE lineage = '~{lineage}' AND files.type = 'Assembly' LIMIT ~{limit}"
 
     call submit_query_and_download {
-        input: query = query, search_api = search_api
+        input:
+            query = query,
+            search_api = search_api
     }
 
     output {
