@@ -3,14 +3,14 @@
 
 ## One task Three Ways
 
-This repo demonstrates a very simple task using the `clippe` command line tool, using multiple
+This repo demonstrates a very simple task using the `dnastack` command line tool, using multiple
 different execution engines. 
 
 ### Getting Started
 
 ```
-git clone git@github.com:DNAstack/clippe-worked-examples.git
-cd clippe-worked-examples
+git clone git@github.com:DNAstack/dnastack-client-library-worked-examples.git
+cd dnastack-client-library-worked-examples
 ```
 
 ### Wdl
