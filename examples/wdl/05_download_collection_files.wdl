@@ -15,7 +15,7 @@ task download_files {
 
       echo "downloading data from ~{drs_url}/ga4gh/drs/v1/objects/${drs_id}"
       mkdir -p outputs/${drs_id}
-      wget -O outputs/${drs_id}/file.txt "${accessURL}"
+      wget -O outputs/${drs_id}.txt "${accessURL}"
     }
 
     dnastack config set collections-url "~{collection_url}"
@@ -23,14 +23,14 @@ task download_files {
     itemsQuery="$(dnastack collections list | jq -r ".[] | select(.name == \"~{collection_name}\") | .itemsQuery")"
     filesQuery="WITH items AS (${itemsQuery}) SELECT id FROM items WHERE type = 'blob'"
 
-    drs_ids="$(dnastack collections query library "${filesQuery}" | jq -r '.data[].id')"
+    drs_ids="$(dnastack collections query library "${filesQuery}" | jq -r '.[].id')"
     for drs_id in ${drs_ids}; do
       downloadDRS ${drs_id}
     done
   >>>
 
   output {
-    Array[File] downloaded_data = glob("outputs/*/*")
+    Array[File] downloaded_data = glob("outputs/*")
   }
 
   runtime {
