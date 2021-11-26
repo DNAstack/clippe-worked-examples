@@ -3,17 +3,15 @@ version 1.0
 workflow variants_from_assembly {
   input {
     String collection_name
-    String data_connect_url = "https://collection-service.publisher.dnastack.com/collection/library/data-connect/"
-    String collection_url = "https://collection-service.publisher.dnastack.com/collections"
-    String drs_url = "https://collection-service.publisher.dnastack.com/collection/library/drs/objects"
+    String collections_api_url = "https://viral.ai/api/collections"
+    String limit = "10"
   }
 
   call download_fastas {
     input:
+      collections_api_url = collection_name,
       collection_name = collection_name,
-      data_connect_url = data_connect_url,
-      collection_url = collection_url,
-      drs_url = drs_url
+      limit = limit,
   }
 
   scatter (fasta in download_fastas.fastas) {
@@ -33,33 +31,25 @@ workflow variants_from_assembly {
 task download_fastas {
 
   input {
+    String collections_api_url
     String collection_name
-    String data_connect_url
-    String collection_url
-    String drs_url
+    Int limit
   }
 
   command <<<
-    dnastack config set data-connect-url "~{data_connect_url}"
-    dnastack config set collections-url "~{collection_url}"
     mkdir outputs
-    query=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .itemsQuery' | sed -e 's:/\*[^*]*\*/::g' )
-    for drs_object in $(dnastack dataconnect query "${query} LIMIT 10" | jq -c '.[] | select(.type == "blob") |{id:.id,name:.name}'); do
-    drs_id="$(echo ${drs_object} | jq -r '.id')"
-    drs_name="$(echo ${drs_object} | jq -r '.name' | sed 's:/:_:g')"
-    echo "downloading data from ~{drs_url}/${drs_id}"
-    url=$(curl "~{drs_url}/${drs_id}/access/https" | jq -r '.url')
-    mkdir outputs/${drs_id}
-    wget -O outputs/${drs_id}/${drs_name} "${url}" || true
-    done
+    dnastack config set collections.url "~{collections_api_url}"
+    collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .slugName')
+    query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" WHERE name LIKE '%.fasta' OR name LIKE '%.fa' LIMIT ~{limit}"
+    dnastack collections query "$collection_slug_name" "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
   >>>
 
   output {
-    Array[File] fastas = glob("outputs/*/*")
+    Array[File] downloaded_data = glob("outputs/*/*")
   }
 
   runtime {
-    docker: "gcr.io/dnastack-pub-container-store/dnastack-cli:latest"
+    docker: "gcr.io/dnastack-pub-container-store/dnastack-cli:v0.3.4"
   }
 }
 

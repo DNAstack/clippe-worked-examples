@@ -1,38 +1,28 @@
 version 1.0
 
 task download_fastas {
-
   input {
+    String collections_api_url
     String collection_name
-    String data_connect_url
-    String collection_url
-    String drs_url
+    Int limit
   }
 
   command <<<
-    dnastack config set data-connect-url "~{data_connect_url}"
-    dnastack config set collections-url "~{collection_url}"
     mkdir outputs
-    query=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .itemsQuery' | sed -e 's:/\*[^*]*\*/::g' )
-    for drs_object in $(dnastack dataconnect query "${query}" | jq -c '.[] | select(.type == "blob") |{id:.id,name:.name}'); do
-    drs_id="$(echo ${drs_object} | jq -r '.id')"
-    drs_name="$(echo ${drs_object} | jq -r '.name' | sed 's:/:_:g')"
-    echo "downloading data from ~{drs_url}/${drs_id}"
-    url=$(curl "~{drs_url}/${drs_id}/access/https" | jq -r '.url')
-    mkdir outputs/${drs_id}
-    wget -O outputs/${drs_id}/${drs_name} "${url}" || true
-    done
+    dnastack config set collections.url "~{collections_api_url}"
+    collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .slugName')
+    query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" WHERE name LIKE '%.fasta' OR name LIKE '%.fa' LIMIT ~{limit}"
+    dnastack collections query "$collection_slug_name" "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
   >>>
 
   output {
-    Array[File] fastas = glob("outputs/*/*")
+    Array[File] downloaded_data = glob("outputs/*/*")
   }
 
   runtime {
     docker: "gcr.io/dnastack-pub-container-store/dnastack-cli:latest"
   }
 }
-
 task generate_multi_fasta {
   input {
     Array[File] to_concat
@@ -40,7 +30,10 @@ task generate_multi_fasta {
   }
 
   command <<<
-    cat ~{sep=" " to_concat} > ~{output_file_name}
+    touch ~{output_file_name}
+    while read -r to_concat || [[ -n "$to_concat" ]]; do
+    cat "$to_concat" >> ~{output_file_name}
+    done < ~{write_lines(to_concat)}
   >>>
 
   output {
@@ -57,39 +50,54 @@ task do_multiple_sequence_alignment {
     File multi_fasta
   }
 
+  Int threads = 4
+
   command <<<
     echo "Gerating sequence alignment from multi-fasta"
-    echo "perform alignment here" > "alignment.fasta"
+    clustalo \
+    --infile ~{multi_fasta} \
+    --threads ~{threads} \
+    --outfile alignment.fasta
   >>>
 
   output {
     File multiple_alignment = "alignment.fasta"
+  }
+
+  runtime {
+    docker: "gcr.io/dnastack-pub-container-store/clustal_omega:1.2.4"
+    cpu: threads
+    memory: "8 GB"
   }
 }
 
 workflow download_and_concat {
   input {
     String collection_name
-    String data_connect_url = "https://collection-service.publisher.dnastack.com/collection/library/data-connect/"
-    String collection_url = "https://collection-service.publisher.dnastack.com/collections"
-    String drs_url = "https://collection-service.publisher.dnastack.com/collection/library/drs/objects"
+    String collections_api_url = "https://viral.ai/api/collections"
+    Int limit = 10
   }
 
-  call download_files {
+  call download_fastas {
     input:
+      collections_api_url = collections_api_url,
       collection_name = collection_name,
-      data_connect_url = data_connect_url,
-      collection_url = collection_url,
-      drs_url = drs_url
+      limit = limit
   }
 
-  call concat_files {
+  call generate_multi_fasta {
     input:
-      to_concat = download_files.downloaded_data
+      to_concat = download_fastas.downloaded_data
+  }
+
+  call do_multiple_sequence_alignment {
+    input:
+      multi_fasta = generate_multi_fasta.concatted_file
   }
 
   output {
-    Array[File] downloaded_data = download_files.downloaded_data
-    File concatted_file = concat_files.concatted_file
+    Array[File] downloaded_data = download_fastas.downloaded_data
+    File concatted_file = generate_multi_fasta.concatted_file
+    File multiple_alignment = do_multiple_sequence_alignment.multiple_alignment
   }
 }
