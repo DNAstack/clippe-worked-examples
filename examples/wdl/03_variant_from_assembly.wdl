@@ -49,7 +49,7 @@ task download_fastas {
   }
 
   runtime {
-    docker: "gcr.io/dnastack-pub-container-store/dnastack-cli:v0.3.4"
+    docker: "gcr.io/dnastack-pub-container-store/dnastack-cli:v0.3.3"
   }
 }
 

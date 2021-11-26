@@ -1,23 +1,17 @@
 #!/usr/bin/env bash
 
-
 pushd docker/dnastack-client-library || exit
-    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/dnastack-client-library:$(git describe)" .
-    docker tag "gcr.io/dnastack-pub-container-store/dnastack-client-library:$(git describe)" gcr.io/dnastack-pub-container-store/dnastack-client-library:latest
-    docker push "gcr.io/dnastack-pub-container-store/dnastack-client-library:$(git describe)"
-    docker push gcr.io/dnastack-pub-container-store/dnastack-client-library:latest
+    docker push --all-tags "gcr.io/dnastack-pub-container-store/dnastack-client-library"
 popd || exit
 
 pushd docker/dnastack-cli || exit
-    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)" .
-    docker tag "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)" gcr.io/dnastack-pub-container-store/dnastack-cli:latest
-    docker push "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)"
-    docker push gcr.io/dnastack-pub-container-store/dnastack-cli:latest
+    docker push --all-tags "gcr.io/dnastack-pub-container-store/dnastack-cli"
 popd || exit
 
 pushd docker/assembly_to_variants || exit
-    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" .
-    docker tag "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" gcr.io/dnastack-pub-container-store/assembly_to_variants:latest
-    docker push "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)"
-    docker push gcr.io/dnastack-pub-container-store/assembly_to_variants:latest
+    docker push --all-tags "gcr.io/dnastack-pub-container-store/assembly_to_variants"
+popd || exit
+
+pushd docker/clustal_omega || exit
+    docker push --all-tags "gcr.io/dnastack-pub-container-store/clustal_omega:"
 popd || exit

@@ -1,19 +1,28 @@
 #!/usr/bin/env bash
 
-
+DNASTACK_CLI_VERSION="v0.3.3"
 
 pushd docker/dnastack-client-library || exit
-    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/dnastack-client-library:$(git describe)" .
-    docker tag "gcr.io/dnastack-pub-container-store/dnastack-client-library:$(git describe)" gcr.io/dnastack-pub-container-store/dnastack-client-library:latest
+    docker build --no-cache \
+      -t "gcr.io/dnastack-pub-container-store/dnastack-client-library:$(git describe)" \
+      -t "gcr.io/dnastack-pub-container-store/dnastack-client-library:latest" .
 popd || exit
 
-
 pushd docker/dnastack-cli || exit
-    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)" .
-    docker tag "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)" gcr.io/dnastack-pub-container-store/dnastack-cli:latest
+    docker build --no-cache --build-arg CLI_VERSION="${DNASTACK_CLI_VERSION}" \
+      -t "gcr.io/dnastack-pub-container-store/dnastack-cli:$(git describe)" \
+      -t "gcr.io/dnastack-pub-container-store/dnastack-cli:${DNASTACK_CLI_VERSION}" \
+      -t "gcr.io/dnastack-pub-container-store/dnastack-cli:latest" .
 popd || exit
 
 pushd docker/assembly_to_variants || exit
-    docker build --no-cache -t "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" .
-    docker tag "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" gcr.io/dnastack-pub-container-store/assembly_to_variants:latest
+    docker build --no-cache \
+      -t "gcr.io/dnastack-pub-container-store/assembly_to_variants:$(git describe)" \
+      -t "gcr.io/dnastack-pub-container-store/assembly_to_variants:latest" .
+popd || exit
+
+pushd docker/clustal_omega || exit
+    docker build --no-cache \
+      -t "gcr.io/dnastack-pub-container-store/clustal_omega:$(git describe)" \
+      -t "gcr.io/dnastack-pub-container-store/clustal_omega:latest" .
 popd || exit

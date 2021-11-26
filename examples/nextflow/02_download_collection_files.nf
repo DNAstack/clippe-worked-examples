@@ -5,7 +5,7 @@ params.collections_api_url="https://viral.ai/api/collections"
 params.limit = "10"
 
 process downloadFirstTenFiles {
-    container 'gcr.io/dnastack-pub-container-store/dnastack-cli:v0.3.4'
+    container 'gcr.io/dnastack-pub-container-store/dnastack-cli:v0.3.3'
     containerOptions = '--user root'
 
     output:
