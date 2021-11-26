@@ -1,4 +1,4 @@
-# TAG gcr.io/cool-benefit-817/clustal_omega:1.2.4
+# TAG gcr.io/dnastack-pub-container-store/clustal_omega:1.2.4
 FROM ubuntu:xenial
 
 MAINTAINER Heather Ward <heather@dnastack.com>
