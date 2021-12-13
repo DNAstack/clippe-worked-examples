@@ -2,7 +2,7 @@ version 1.0
 
 workflow variants_from_assembly {
   input {
-    String collection_name
+    String collection_name = "NCBI SRA SARS-CoV-2 Genomes"
     String collections_api_url = "https://viral.ai/api/collections"
     String limit = "10"
   }

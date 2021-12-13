@@ -27,7 +27,7 @@ task download_files {
 
 workflow download_first_ten_files {
   input {
-    String collection_name
+    String collection_name = "NCBI SRA SARS-CoV-2 Genomes"
     String collections_api_url = "https://viral.ai/api/collections"
   }
 
