@@ -7,7 +7,7 @@ requirements:
   InlineJavascriptRequirement: {}
 hints:
   DockerRequirement:
-    dockerPull: gcr.io/dnastack-pub-container-store/dnastack-cli:v0.3.3
+    dockerPull: gcr.io/dnastack-pub-container-store/dnastack-cli:latest
 inputs:
   collection_name:
     type: string?
