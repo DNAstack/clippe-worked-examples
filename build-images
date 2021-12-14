@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DNASTACK_CLI_VERSION="v0.3.3"
+DNASTACK_CLI_VERSION="0.3.3"
 
 pushd docker/dnastack-client-library || exit
     docker build --no-cache \
