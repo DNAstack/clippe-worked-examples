@@ -5,31 +5,37 @@ workflow variants_from_assembly {
     String collection_name = "NCBI SRA SARS-CoV-2 Genomes"
     String collections_api_url = "https://viral.ai/api/collections"
     String limit = "10"
+    String reference_genome_id = "NC_045512"
   }
 
   call download_fastas {
     input:
-      collections_api_url = collection_name,
+      collections_api_url = collections_api_url,
       collection_name = collection_name,
-      limit = limit,
+      limit = limit
   }
 
-  scatter (fasta in download_fastas.fastas) {
+  call download_reference {
+    input:
+      reference_genome_id = reference_genome_id
+  }
+
+  scatter (assembly in download_fastas.downloaded_data) {
     call call_variants {
       input:
-        assembly = fasta
+        assembly = assembly,
+        reference_fasta = download_reference.reference_fasta,
+        reference_genome_id = reference_genome_id
     }
   }
 
   output {
-    Array[File] annotated_vcf = call_variants.annotated_vcf
-    Array[File] annotated_vcf_index = call_variants.annotated_vcf_index
-    Array[File] snpEff_summary = call_variants.snpEff_summary
+    Array[File] vcf = call_variants.vcf
+    Array[File] vcf_index = call_variants.vcf_index
   }
 }
 
 task download_fastas {
-
   input {
     String collections_api_url
     String collection_name
@@ -42,10 +48,12 @@ task download_fastas {
     collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .slugName')
     query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" WHERE name LIKE '%.fasta' OR name LIKE '%.fa' LIMIT ~{limit}"
     dnastack collections query "$collection_slug_name" "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
+
+    find outputs -type f -exec mv {} outputs/ \;
   >>>
 
   output {
-    Array[File] downloaded_data = glob("outputs/*/*")
+    Array[File] downloaded_data = glob("outputs/*")
   }
 
   runtime {
@@ -53,25 +61,46 @@ task download_fastas {
   }
 }
 
+task download_reference {
+  input {
+    String reference_genome_id
+  }
+
+  command <<<
+    curl -X GET \
+      $"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=~{reference_genome_id}&rettype=fasta&retmode=text" \
+        -o ~{reference_genome_id}.fasta
+  >>>
+
+  output {
+    File reference_fasta = "${reference_genome_id}.fasta"
+  }
+
+  runtime {
+    docker: "gcr.io/dnastack-pub-container-store/assembly_to_variants:latest"
+  }
+}
+
 task call_variants {
   input {
     File assembly
+    File reference_fasta
+    String reference_genome_id
   }
 
   String accession = sub(basename(assembly),"\\..*","")
 
   command <<<
     assembly_to_variants.sh \
-    -s ~{accession} \
-    -a ~{assembly}
-
-    mv snpEff_summary.html ~{accession}.snpEff_summary.html
+      -s ~{accession} \
+      -a ~{assembly} \
+      -g ~{reference_genome_id} \
+      -r ~{reference_fasta}
   >>>
 
   output {
-    File annotated_vcf = "~{accession}.ann.vcf.gz"
-    File annotated_vcf_index = "~{accession}.ann.vcf.gz.tbi"
-    File snpEff_summary = "~{accession}.snpEff_summary.html"
+    File vcf = "~{accession}.vcf.gz"
+    File vcf_index = "~{accession}.vcf.gz.tbi"
   }
 
   runtime {

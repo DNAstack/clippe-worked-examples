@@ -13,16 +13,19 @@ task download_fastas {
     collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .slugName')
     query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" WHERE name LIKE '%.fasta' OR name LIKE '%.fa' LIMIT ~{limit}"
     dnastack collections query "$collection_slug_name" "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
+
+    find outputs -type f -exec mv {} outputs/ \;
   >>>
 
   output {
-    Array[File] downloaded_data = glob("outputs/*/*")
+    Array[File] downloaded_data = glob("outputs/*")
   }
 
   runtime {
     docker: "gcr.io/dnastack-pub-container-store/dnastack-cli:latest"
   }
 }
+
 task generate_multi_fasta {
   input {
     Array[File] to_concat
@@ -45,7 +48,7 @@ task generate_multi_fasta {
   }
 }
 
-task do_multiple_sequence_alignment {
+task perform_multiple_sequence_alignment {
   input {
     File multi_fasta
   }
@@ -55,9 +58,9 @@ task do_multiple_sequence_alignment {
   command <<<
     echo "Gerating sequence alignment from multi-fasta"
     clustalo \
-    --infile ~{multi_fasta} \
-    --threads ~{threads} \
-    --outfile alignment.fasta
+      --infile ~{multi_fasta} \
+      --threads ~{threads} \
+      --outfile alignment.fasta
   >>>
 
   output {
@@ -65,15 +68,15 @@ task do_multiple_sequence_alignment {
   }
 
   runtime {
-    docker: "gcr.io/dnastack-pub-container-store/clustal_omega:1.2.4"
+    docker: "gcr.io/dnastack-pub-container-store/clustal_omega:latest"
     cpu: threads
     memory: "8 GB"
   }
 }
 
-workflow download_and_concat {
+workflow multiple_sequence_alignment {
   input {
-    String collection_name
+    String collection_name = "NCBI SRA SARS-CoV-2 Genomes"
     String collections_api_url = "https://viral.ai/api/collections"
     Int limit = 10
   }
@@ -90,7 +93,7 @@ workflow download_and_concat {
       to_concat = download_fastas.downloaded_data
   }
 
-  call do_multiple_sequence_alignment {
+  call perform_multiple_sequence_alignment {
     input:
       multi_fasta = generate_multi_fasta.concatted_file
   }
@@ -98,6 +101,6 @@ workflow download_and_concat {
   output {
     Array[File] downloaded_data = download_fastas.downloaded_data
     File concatted_file = generate_multi_fasta.concatted_file
-    File multiple_alignment = do_multiple_sequence_alignment.multiple_alignment
+    File multiple_alignment = perform_multiple_sequence_alignment.multiple_alignment
   }
 }

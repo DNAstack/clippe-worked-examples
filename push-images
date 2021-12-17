@@ -13,5 +13,5 @@ pushd docker/assembly_to_variants || exit
 popd || exit
 
 pushd docker/clustal_omega || exit
-    docker push --all-tags "gcr.io/dnastack-pub-container-store/clustal_omega:"
+    docker push --all-tags "gcr.io/dnastack-pub-container-store/clustal_omega"
 popd || exit

@@ -16,9 +16,9 @@ process downloadFirstTenFiles {
     #!/usr/bin/env bash
     mkdir outputs
     dnastack config set collections.url "${params.collections_api_url}"
-    collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "${params.collection_name}") | .slugName')
-    query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" LIMIT ${params.limit}"
-    dnastack collections query $collection_slug_name "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
+    collection_slug_name=`dnastack collections list | jq -r '.[] | select(.name == "${params.collection_name}") | .slugName'`
+    query="SELECT drs_url FROM \"viralai\".\"\$collection_slug_name\".\"files\" WHERE name LIKE '%.fasta' OR name LIKE '%.fa' LIMIT ${params.limit}"
+    dnastack collections query \$collection_slug_name "\$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
     """
 }
 

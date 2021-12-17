@@ -14,10 +14,12 @@ task download_files {
     collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "~{collection_name}") | .slugName')
     query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" WHERE name LIKE '%.fasta' OR name LIKE '%.fa' LIMIT ~{limit}"
     dnastack collections query "$collection_slug_name" "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
+
+    find outputs -type f -exec mv {} outputs/ \;
   >>>
 
   output {
-    Array[File] downloaded_data = glob("outputs/*/*")
+    Array[File] downloaded_data = glob("outputs/*")
   }
 
   runtime {
@@ -35,9 +37,9 @@ workflow download_first_ten_files {
 
   call download_files {
     input:
-      collections_api_url = collection_name,
+      collections_api_url = collections_api_url,
       collection_name = collection_name,
-      limit = limit,
+      limit = limit
   }
 
   output {

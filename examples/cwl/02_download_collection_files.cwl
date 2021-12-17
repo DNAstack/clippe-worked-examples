@@ -1,13 +1,12 @@
 #!/usr/bin/env cwl-runner
 
 cwlVersion: v1.0
-class: CommandLineTool
+class: Workflow
+
 requirements:
-  ShellCommandRequirement: {}
-  InlineJavascriptRequirement: {}
-hints:
-  DockerRequirement:
-    dockerPull: gcr.io/dnastack-pub-container-store/dnastack-cli:latest
+    - class: InlineJavascriptRequirement
+    - class: ShellCommandRequirement
+
 inputs:
   collection_name:
     type: string?
@@ -16,20 +15,27 @@ inputs:
     type: string?
     default: "https://viral.ai/api/collections"
   limit:
-    type: string?
-    default: "10"
-arguments:
-  - shellQuote: false
-    valueFrom: >
-      mkdir outputs
-      dnastack config set collections.url "${inputs.collections_api_url}"
-      collection_slug_name=$(dnastack collections list | jq -r '.[] | select(.name == "${inputs.collection_name}") | .slugName')
-      query="SELECT drs_url FROM \"viralai\".\"$collection_slug_name\".\"files\" LIMIT ${inputs.limit}"
-      dnastack collections query $collection_slug_name "$query" | jq -r '.[].drs_url' | dnastack files download -o outputs
+    type: int?
+    default: 10
+
+steps:
+  get_slug_name:
+    run: ./tools/get_slug_name.cwl
+    in:
+      collection_name: collection_name
+      collections_api_url: collections_api_url
+    out: [ slug_name ]
+  download_files:
+    run: ./tools/download_files.cwl
+    in:
+      collections_api_url: collections_api_url
+      collection_slug_name: get_slug_name/slug_name
+      limit: limit
+    out: [ downloaded_files ]
+
 outputs:
-  output:
+  downloaded_files:
     type:
       type: array
       items: File
-    outputBinding:
-      glob: "outputs/*"
+    outputSource: download_files/downloaded_files
